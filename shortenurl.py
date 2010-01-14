@@ -27,11 +27,17 @@ SCRIPT_LICENSE = "GPL3"
 SCRIPT_DESC    = "Shorten long incoming and outgoing URLs"
 
 ISGD = 'http://is.gd/api.php?%s'
+TINYURL = 'http://tinyurl.com/apicreate.php?%s'
 
 # script options
+# shortener options:
+#  - isgd
+#  - tinyurl
+
 settings = {
     "color": "red",
     "urllength": "30",
+    "shortener": "isgd",
 }
 
 octet = r'(?:2(?:[0-4]\d|5[0-5])|1\d\d|\d{1,2})'
@@ -82,32 +88,31 @@ def match_url(message, buffer, from_self):
     for url in urlRe.findall(message):
         if len(url) > int(weechat.config_get_plugin('urllength')):
             if from_self:
-                short_url = tiny_url(url)
+                short_url = tiny_url(url, None)
                 new_message = new_message.replace(url, short_url)
             else:
-                tiny_url_process(url, buffer, from_self)
+                tiny_url(url, buffer)
 
     if from_self:
         return new_message
     else:
         return weechat.WEECHAT_RC_OK 
 
-def tiny_url(url):
-    url = ISGD % urlencode({'longurl':url})
+def tiny_url(url, buffer):
+    shortener = weechat.config_get_plugin('shortener')
+    if shortener == 'isgd':
+        url = ISGD % urlencode({'longurl':url})
+    if shortener == 'tinyurl':
+        url = TINYURL % urlencode({'url':url})
     try:
-        return urlopen(url).read()
+        if buffer:
+            shortenurl_hook_process = weechat.hook_process(
+                        "python -c \"import urllib2; print urllib2.urlopen('" + url + "').read()\"",
+                        10 * 1000, "process_complete", buffer)
+        else:
+            return urlopen(url).read()
     except:
         return  url
-
-def tiny_url_process(url, buffer, from_self):
-    """ Query a Tinyurl service, if not available query an alternative one
-        If the alternative service is not available, don't do anything
-    """ 
-    url = ISGD % urlencode({'longurl':url})
-
-    shortenurl_hook_process = weechat.hook_process(
-                 "python -c \"import urllib2; print urllib2.urlopen('" + url + "').read()\"",
-                 10 * 1000, "process_complete", buffer)
 
 def process_complete(data, command, rc, stdout, stderr):
     url = stdout.strip()
