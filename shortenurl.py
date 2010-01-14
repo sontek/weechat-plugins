@@ -27,7 +27,7 @@ SCRIPT_LICENSE = "GPL3"
 SCRIPT_DESC    = "Shorten long incoming and outgoing URLs"
 
 ISGD = 'http://is.gd/api.php?%s'
-TINYURL = 'http://tinyurl.com/apicreate.php?%s'
+TINYURL = 'http://tinyurl.com/api-create.php?%s'
 
 # script options
 # shortener options:
