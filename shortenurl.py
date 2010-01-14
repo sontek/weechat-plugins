@@ -19,6 +19,13 @@ settings = {
     "urllength": "30",
 }
 
+octet = r'(?:2(?:[0-4]\d|5[0-5])|1\d\d|\d{1,2})'
+ipAddr = r'%s(?:\.%s){3}' % (octet, octet)
+# Base domain regex off RFC 1034 and 1738
+label = r'[0-9a-z][-0-9a-z]*[0-9a-z]?'
+domain = r'%s(?:\.%s)*\.[a-z][-0-9a-z]*[a-z]?' % (label, label)
+urlRe = re.compile(r'(\w+://(?:%s|%s)(?::\d+)?(?:/[^\])>\s]*)?)' % (domain, ipAddr), re.I)
+
 
 if weechat.register(SCRIPT_NAME, SCRIPT_AUTHOR, SCRIPT_VERSION, SCRIPT_LICENSE,
                     SCRIPT_DESC, "", ""):
@@ -56,13 +63,6 @@ def hook_print_callback(data, buffer, date, tags, displayed, highlight, prefix, 
     return weechat.WEECHAT_RC_OK
 
 def match_url(message, buffer, from_self):
-    octet = r'(?:2(?:[0-4]\d|5[0-5])|1\d\d|\d{1,2})'
-    ipAddr = r'%s(?:\.%s){3}' % (octet, octet)
-    # Base domain regex off RFC 1034 and 1738
-    label = r'[0-9a-z][-0-9a-z]*[0-9a-z]?'
-    domain = r'%s(?:\.%s)*\.[a-z][-0-9a-z]*[a-z]?' % (label, label)
-    urlRe = re.compile(r'(\w+://(?:%s|%s)(?::\d+)?(?:/[^\])>\s]*)?)' % (domain, ipAddr), re.I)
-
     new_message = message
     for url in urlRe.findall(message):
         if len(url) > int(weechat.config_get_plugin('urllength')):
