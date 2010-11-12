@@ -25,20 +25,13 @@ def process_complete(data, command, rc, stdout, stderr):
 
     return weechat.WEECHAT_RC_OK
 
-def command_input_callback(data, buffer, command):
+def command_input_callback(data, buffer, args):
     """ Function called when a command "/input xxxx" is run """
-    if command == '/whatismyip return':
-        what_is_my_ip()
-
-        weechat.buffer_set(buffer, 'input', input)
+    what_is_my_ip(buffer)
 
     return weechat.WEECHAT_RC_OK
 
 if weechat.register(SCRIPT_NAME, SCRIPT_AUTHOR, SCRIPT_VERSION, SCRIPT_LICENSE,
                     SCRIPT_DESC, "", ""):
 
-    # Hooks we want to hook
-    hook_command_run = {
-        "input" : ("/whatismyip return",  "command_input_callback"),
-    }
-
+    weechat.hook_command("whatismyip", SCRIPT_DESC, "", "", "", "command_input_callback", "")
