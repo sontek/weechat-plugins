@@ -27,7 +27,7 @@ def what_is_my_ip(buffer):
     url = 'http://www.whatismyip.com/automation/n09230945.asp'
 
     if buffer:
-        shortenurl_hook_process = weechat.hook_process(
+        url_hook_process = weechat.hook_process(
                     "python -c \"import urllib2; print urllib2.urlopen('" + url + "').readlines()[0]\"",
                     10 * 1000, "process_complete", buffer)
     else:
