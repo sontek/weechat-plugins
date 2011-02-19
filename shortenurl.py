@@ -14,10 +14,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # History
+# 2011-01-17, nils_2 <weechatter@arcor.de>
+#   version 0.4: URI will be shorten in /query, too.
+#              : added: option "short_own".
 # 2010-11-08, John Anderson <sontek@gmail.com>:
 #   version 0.3: Get python 2.x binary for hook_process (fixes problem
 #                when python 3.x is default python version, requires
-#                WeeChat >= 0.3.4
+#                WeeChat >= 0.3.4)
 
 import sys
 import re
@@ -27,7 +30,7 @@ from urllib2 import urlopen
 
 SCRIPT_NAME    = "shortenurl"
 SCRIPT_AUTHOR  = "John Anderson <sontek@gmail.com>"
-SCRIPT_VERSION = "0.3"
+SCRIPT_VERSION = "0.4"
 SCRIPT_LICENSE = "GPL3"
 SCRIPT_DESC    = "Shorten long incoming and outgoing URLs"
 
@@ -44,6 +47,7 @@ settings = {
     "urllength": "30",
     "shortener": "isgd",
     "public": "off",
+    "short_own": "off",
 }
 
 octet = r'(?:2(?:[0-4]\d|5[0-5])|1\d\d|\d{1,2})'
@@ -70,7 +74,9 @@ if weechat.register(SCRIPT_NAME, SCRIPT_AUTHOR, SCRIPT_VERSION, SCRIPT_LICENSE,
     for hook, value in hook_command_run.iteritems():
         weechat.hook_command_run(value[0], value[1], "")
 
-    weechat.hook_print("", "", "", 1, "hook_print_callback", "")
+    weechat.hook_print("", "notify_message", "://", 1, "hook_print_callback", "")
+    weechat.hook_print("", "notify_private", "://", 1, "hook_print_callback", "")
+    weechat.hook_print("", "notify_highlight", "://", 1, "hook_print_callback", "")
 
 
 def command_input_callback(data, buffer, command):
@@ -84,10 +90,21 @@ def command_input_callback(data, buffer, command):
 
 
 def hook_print_callback(data, buffer, date, tags, displayed, highlight, prefix, message):
-    if 'notify_message' in tags.split(','):
-        return match_url(message, buffer, False)
+  if weechat.config_get_plugin('short_own') == 'on':
+    # get servername
+    infolist = weechat.infolist_get('buffer',buffer,'')
+    weechat.infolist_next(infolist)
+    servername,undef = weechat.infolist_string(infolist,'name').split('.',1)
+    weechat.infolist_free(infolist)
+    
+    # get own nick
+    my_nick = weechat.info_get( 'irc_nick', servername )
+    if my_nick in tags:
+      return weechat.WEECHAT_RC_OK
 
-    return weechat.WEECHAT_RC_OK
+  return match_url(message, buffer, False)
+
+  return weechat.WEECHAT_RC_OK
 
 def match_url(message, buffer, from_self):
     new_message = message
