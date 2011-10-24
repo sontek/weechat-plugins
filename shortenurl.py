@@ -14,6 +14,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # History
+# 2011-10-24, Dmitry Geurkov <dmitry_627@mail.ru>
+#   version 0.4.1: added: option "ignore_list" for a blacklist of shorten urls.
 # 2011-01-17, nils_2 <weechatter@arcor.de>
 #   version 0.4: URI will be shorten in /query, too.
 #              : added: option "short_own".
@@ -22,7 +24,6 @@
 #                when python 3.x is default python version, requires
 #                WeeChat >= 0.3.4)
 
-import sys
 import re
 import weechat
 from urllib import urlencode
@@ -30,7 +31,7 @@ from urllib2 import urlopen
 
 SCRIPT_NAME    = "shortenurl"
 SCRIPT_AUTHOR  = "John Anderson <sontek@gmail.com>"
-SCRIPT_VERSION = "0.4"
+SCRIPT_VERSION = "0.4.1"
 SCRIPT_LICENSE = "GPL3"
 SCRIPT_DESC    = "Shorten long incoming and outgoing URLs"
 
@@ -48,6 +49,7 @@ settings = {
     "shortener": "isgd",
     "public": "off",
     "short_own": "off",
+    "ignore_list": "",
 }
 
 octet = r'(?:2(?:[0-4]\d|5[0-5])|1\d\d|\d{1,2})'
@@ -109,7 +111,7 @@ def hook_print_callback(data, buffer, date, tags, displayed, highlight, prefix, 
 def match_url(message, buffer, from_self):
     new_message = message
     for url in urlRe.findall(message):
-        if len(url) > int(weechat.config_get_plugin('urllength')):
+        if len(url) > int(weechat.config_get_plugin('urllength')) and not ignore_url(url):
             if from_self:
                 public = weechat.config_get_plugin('public')
                 if public == 'on':
@@ -139,6 +141,15 @@ def tiny_url(url, buffer):
             return urlopen(url).read()
     except:
         return  url
+
+def ignore_url(url):
+  ignorelist = weechat.config_get_plugin('ignore_list').split(',')
+
+  for ignore in ignorelist:
+      if len(ignore) > 0 and ignore in url:
+          return True
+
+  return False
 
 def process_complete(data, command, rc, stdout, stderr):
     url = stdout.strip()
