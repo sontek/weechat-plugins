@@ -91,7 +91,7 @@ def notify(data, buf, date, tags, displayed, hilight, prefix, msg):
         urls = find_and_process_urls(msg)
 
         for url, short_url in urls:
-            weechat.prnt(buf, '%(color)s[%(url)s)]%(reset)s' % dict(
+            weechat.prnt(buf, '%(color)s[ %(url)s ]%(reset)s' % dict(
                 color=color,
                 url=short_url,
                 reset=reset))
@@ -102,7 +102,7 @@ def notify(data, buf, date, tags, displayed, hilight, prefix, msg):
 def outgoing_hook(data, modifier, modifier_data, msg):
     urls = find_and_process_urls(msg)
     for url, short_url in urls:
-        msg = msg.replace(url, '%(short_url)s [%(url)s]' % dict(
+        msg = msg.replace(url, '%(short_url)s [ %(url)s ]' % dict(
             url=url,
             short_url=short_url))
 
