@@ -76,10 +76,7 @@ if weechat.register(SCRIPT_NAME, SCRIPT_AUTHOR, SCRIPT_VERSION, SCRIPT_LICENSE,
             weechat.config_set_plugin(option, default_value)
 
     weechat.hook_print('', 'irc_privmsg', '', 1, 'notify', '')
-    short_own = weechat.config_get_plugin('short_own')
-
-    if short_own != 'off':
-        weechat.hook_modifier('irc_out_privmsg', 'outgoing_hook', '')
+    weechat.hook_modifier('irc_out_privmsg', 'outgoing_hook', '')
 
 
 def notify(data, buf, date, tags, displayed, hilight, prefix, msg):
@@ -100,6 +97,10 @@ def notify(data, buf, date, tags, displayed, hilight, prefix, msg):
 
 
 def outgoing_hook(data, modifier, modifier_data, msg):
+    short_own = weechat.config_get_plugin('short_own')
+    if short_own == 'off':
+        return msg
+
     urls = find_and_process_urls(msg)
     for url, short_url in urls:
         msg = msg.replace(url, '%(short_url)s [ %(url)s ]' % dict(
